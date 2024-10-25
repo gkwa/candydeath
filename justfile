@@ -5,22 +5,17 @@ projects := "firejester openlace"
 default:
     just --list
 
-run: clean
-    for project in {{ projects }}; do just process-project $project; done
+run: clean process-all
 
-format:
-    prettier --config=.prettierrc.json --write .
-    cue fmt *.cue
-    just --unstable --fmt
-
-process-project PROJECT:
-    cue import --force --package=main --path='input:' {{ PROJECT }}/.goreleaser.yaml >{{ PROJECT }}/.goreleaser.cue
-    cue eval --force schema.cue {{ PROJECT }}/.goreleaser.cue --expression=output --out=yaml --outfile={{ PROJECT }}/.goreleaser-updated.yaml
-    cue eval --force schema.cue {{ PROJECT }}/.goreleaser.cue --concrete >/dev/null
-
-clean-project PROJECT:
-    rm -f {{ PROJECT }}/.goreleaser-updated.yaml
-    rm -f {{ PROJECT }}/.goreleaser.cue
+process-all:
+    for project in {{ projects }}; do \
+        cue import --force --package=main --path='input:' $project/.goreleaser.yaml >$project/.goreleaser.cue && \
+        cue eval --force schema.cue $project/.goreleaser.cue --expression=output --out=yaml --outfile=$project/.goreleaser-updated.yaml && \
+        cue eval --force schema.cue $project/.goreleaser.cue --concrete >/dev/null; \
+    done
 
 clean:
-    for project in {{ projects }}; do just clean-project $project; done
+    for project in {{ projects }}; do \
+        rm -f $project/.goreleaser-updated.yaml && \
+        rm -f $project/.goreleaser.cue; \
+    done
