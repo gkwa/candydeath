@@ -8,11 +8,11 @@ format:
 
 process-project PROJECT:
     cue import --force --package=main --path='input:' {{ PROJECT }}/.goreleaser.yaml >{{ PROJECT }}/.goreleaser.cue
-    cue eval schema.cue {{ PROJECT }}/.goreleaser.cue --expression=output --out=yaml --outfile={{ PROJECT }}/.goreleaser-output.yaml
-    diff --unified --ignore-all-space {{ PROJECT }}/.goreleaser.yaml {{ PROJECT }}/.goreleaser-output.yaml || exit 0
+    cue eval schema.cue {{ PROJECT }}/.goreleaser.cue --expression=output --out=yaml --outfile={{ PROJECT }}/.goreleaser-updated.yaml
+    diff --unified --ignore-all-space {{ PROJECT }}/.goreleaser.yaml {{ PROJECT }}/.goreleaser-updated.yaml || exit 0
 
 clean-project PROJECT:
-    rm -f {{ PROJECT }}/.goreleaser-output.yaml
+    rm -f {{ PROJECT }}/.goreleaser-updated.yaml
     rm -f {{ PROJECT }}/.goreleaser.cue
 
 test: clean
