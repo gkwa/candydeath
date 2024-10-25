@@ -1,21 +1,20 @@
 set quiet := true
 
-projects := "firejester openlace"
-
 default:
     just --list
 
-run: clean process-all
+run: (process "firejester") (process "openlace")
 
-process-all:
-    for project in {{ projects }}; do \
-        cue import --force --package=main --path='input:' $project/.goreleaser.yaml >$project/.goreleaser.cue && \
-        cue eval --force schema.cue $project/.goreleaser.cue --expression=output --out=yaml --outfile=$project/.goreleaser-updated.yaml && \
-        cue eval --force schema.cue $project/.goreleaser.cue --concrete >/dev/null; \
-    done
+format:
+    prettier --config=.prettierrc.json --write .
+    cue fmt *.cue
+    just --unstable --fmt
+
+process PROJECT: clean
+    cue import --force --package=main --path='input:' {{ PROJECT }}/.goreleaser.yaml >{{ PROJECT }}/.goreleaser.cue
+    cue eval --force schema.cue {{ PROJECT }}/.goreleaser.cue --expression=output --out=yaml --outfile={{ PROJECT }}/.goreleaser-updated.yaml
+    cue eval --force schema.cue {{ PROJECT }}/.goreleaser.cue --concrete >/dev/null
 
 clean:
-    for project in {{ projects }}; do \
-        rm -f $project/.goreleaser-updated.yaml && \
-        rm -f $project/.goreleaser.cue; \
-    done
+    rm -f */.goreleaser.cue
+    rm -f */.goreleaser-updated.yaml
