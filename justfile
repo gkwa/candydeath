@@ -1,5 +1,12 @@
+set quiet := true
+
+projects := "firejester openlace"
+
 default:
-    @just --list
+    just --list
+
+run: clean
+    for project in {{ projects }}; do just process-project $project; done
 
 format:
     prettier --config=.prettierrc.json --write .
@@ -8,17 +15,12 @@ format:
 
 process-project PROJECT:
     cue import --force --package=main --path='input:' {{ PROJECT }}/.goreleaser.yaml >{{ PROJECT }}/.goreleaser.cue
-    cue eval schema.cue {{ PROJECT }}/.goreleaser.cue --expression=output --out=yaml --outfile={{ PROJECT }}/.goreleaser-updated.yaml
-    diff --unified --ignore-all-space {{ PROJECT }}/.goreleaser.yaml {{ PROJECT }}/.goreleaser-updated.yaml || exit 0
+    cue eval --force schema.cue {{ PROJECT }}/.goreleaser.cue --expression=output --out=yaml --outfile={{ PROJECT }}/.goreleaser-updated.yaml
+    cue eval --force schema.cue {{ PROJECT }}/.goreleaser.cue --concrete >/dev/null
 
 clean-project PROJECT:
     rm -f {{ PROJECT }}/.goreleaser-updated.yaml
     rm -f {{ PROJECT }}/.goreleaser.cue
 
-test: clean
-    just process-project firejester
-    just process-project openlace
-
 clean:
-    just clean-project firejester
-    just clean-project openlace
+    for project in {{ projects }}; do just clean-project $project; done

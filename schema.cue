@@ -1,5 +1,6 @@
 package main
 
+// Input schema - allows snapshot.name_template since that's what we're converting from
 #Config: {
 	before: {
 		hooks: [...string]
@@ -24,7 +25,7 @@ package main
 		name_template: string
 	}
 	snapshot: {
-		name_template: string
+		name_template: string // Required in input since we need it for conversion
 	}
 	changelog: {
 		sort: string
@@ -34,8 +35,10 @@ package main
 	}
 }
 
+// Validate input against the schema
 input: #Config
 
+// Transform input to output, preserving all fields except converting snapshot.name_template to version_template
 output: {
 	before:   input.before
 	builds:   input.builds
